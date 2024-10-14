@@ -1,12 +1,10 @@
-// Your code here
-
 // First Challenge
 const init = () => {
-    fetchFilmData(); 
+    fetchFilmData();
 }
 
 const fetchFilmData = () => {
-    fetch('http://localhost:3000/films') 
+    fetch('http://localhost:3000/films')
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -23,13 +21,13 @@ const fetchFilmData = () => {
 
 const populateFilmList = (films) => {
     const filmList = document.getElementById('films');
-    filmList.innerHTML = '';  
+    filmList.innerHTML = '';
     films.forEach(film => {
         const li = document.createElement('li');
         li.className = 'film item';
-        li.textContent = film.title;  
-        li.dataset.id = film.id;  
-        li.addEventListener('click', () => displayFilmDetails(film));  
+        li.textContent = film.title;
+        li.dataset.id = film.id;
+        li.addEventListener('click', () => displayFilmDetails(film));
         filmList.appendChild(li);
     });
 };
@@ -53,46 +51,58 @@ const displayFilmDetails = (film) => {
 
     const description = document.querySelector("#film-info");
     description.textContent = film.description;
+
+    const buyButton = document.getElementById("buy-ticket");
+    buyButton.removeEventListener('click', () => { });
+    buyButton.addEventListener('click', () => buyTicket(film));
 };
 
 document.addEventListener("DOMContentLoaded", init);
 
-
-// Separate buy ticket code 
-
+//buyTicket function
 const buyTicket = (film) => {
-    const ticketsSold = film.tickets_sold;
-    const capacity = film.capacity;
-    const availableTickets = capacity - ticketsSold;
+    fetch(`http://localhost:3000/films/${film.id}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then((currentFilmData) => {
+            const ticketsSold = currentFilmData.tickets_sold;
+            const capacity = currentFilmData.capacity;
+            const availableTickets = capacity - ticketsSold;
+            if (availableTickets <= 0) {
+                alert("Sorry, this showing is sold out!");
+                return;
+            }
 
-    if (availableTickets <= 0) {
-        alert("Sorry, this showing is sold out!");
-        return; // Exit the function if no tickets are available
-    }
+            const newTicketsSold = ticketsSold + 1;
 
-    const newTicketsSold = ticketsSold + 1; 
-    fetch(`http://localhost:3000/films/${film.id}`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ tickets_sold: newTicketsSold })
-    })
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then((updatedFilm) => {
-        displayFilmDetails(updatedFilm);  
-        postTicketPurchase(updatedFilm.id, 1); // Assume buying 1 ticket
-        displaySuccessMessage();  
-    })
-    .catch((error) => {
-        console.error('There has been a problem with your fetch operation:', error);
-        displayErrorMessage(); 
-    });
+            // Proceeded to PATCH the updated tickets sold count
+            return fetch(`http://localhost:3000/films/${film.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tickets_sold: newTicketsSold })
+            });
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then((updatedFilm) => {
+            displayFilmDetails(updatedFilm);
+            postTicketPurchase(updatedFilm.id, 1);
+            displaySuccessMessage();
+        })
+        .catch((error) => {
+            console.error('There has been a problem with your fetch operation:', error);
+            displayErrorMessage();   
+        });
 };
 
 const postTicketPurchase = (filmId, numberOfTickets) => {
@@ -106,18 +116,18 @@ const postTicketPurchase = (filmId, numberOfTickets) => {
             number_of_tickets: numberOfTickets
         })
     })
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then((ticket) => {
-        console.log('Ticket purchased:', ticket);
-    })
-    .catch((error) => {
-        console.error('There has been a problem with your ticket purchase operation:', error);
-    });
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then((ticket) => {
+            console.log('Ticket purchased:', ticket);
+        })
+        .catch((error) => {
+            console.error('There has been a problem with your ticket purchase operation:', error);
+        });
 };
 const displaySuccessMessage = () => {
     alert("Ticket purchased successfully!");
@@ -126,4 +136,4 @@ const displayErrorMessage = () => {
     alert("There was an error processing your purchase. Please try again.");
 };
 
-
+ 
