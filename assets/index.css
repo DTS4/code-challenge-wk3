@@ -1,5 +1,5 @@
 body {
-  background-color: #ebebeb;
+  background-color: #fafafa;
 }
 
 .heading {
@@ -40,6 +40,7 @@ body {
 .film {
   font-size: 16px;
   text-transform: uppercase;
+  font-weight: bold;
 }
 
 .sold-out {
@@ -53,4 +54,3 @@ img {
 #film-info {
   padding-bottom: 15px;
 }
-
